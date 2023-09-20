@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Author: Daniel Mohr
 # Date: 2022-08-23, 2022-09-22, 2022-10-19, 2023-09-20
+# License: BSD 3-Clause License
 # pylint: disable=missing-docstring
 
 import hashlib
