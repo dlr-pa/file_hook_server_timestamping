@@ -1,0 +1,53 @@
+variables:
+  DEBIAN_FRONTEND: noninteractive
+  APT_GET_INSTALL: "apt-get install -q -y"
+
+pre-commit_alpine:
+  image:
+    # https://hub.docker.com/_/alpine
+    name: alpine:latest
+  script:
+    - date
+    - cat /etc/os-release
+    - apk add --no-cache bash gcc git musl-dev npm py3-pip python3-dev
+    - pip install pre-commit
+    # run pre-commit
+    - pre-commit --version
+    - pre-commit run --all-files
+
+pycodestyle_alpine:
+  image:
+    # https://hub.docker.com/_/alpine
+    name: alpine:latest
+  script:
+    - date
+    - cat /etc/os-release
+    - apk add --no-cache py3-pycodestyle
+    # check PEP 8 code style (pycodestyle was formerly called pep8)
+    - pycodestyle --version
+    - pycodestyle --show-source --show-pep8 --statistics $(find -name "*.py")
+
+pylint_alpine:
+  image:
+    # https://hub.docker.com/_/alpine
+    name: alpine:latest
+  script:
+    - date
+    - cat /etc/os-release
+    - apk add --no-cache py3-pylint
+    # run pylint
+    - pylint --version
+    - pylint --persistent n $(find -name "*.py")
+
+pylint_debian:
+  image:
+    # https://hub.docker.com/_/debian
+    name: debian:latest
+  script:
+    - date
+    - cat /etc/os-release
+    - apt-get update
+    - $APT_GET_INSTALL pylint
+    # run pylint
+    - pylint --version
+    - pylint --persistent n $(find -name "*.py")

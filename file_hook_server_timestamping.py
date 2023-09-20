@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Author: Daniel Mohr
-# Date: 2022-08-23, 2022-09-22, 2022-10-19
+# Date: 2022-08-23, 2022-09-22, 2022-10-19, 2023-09-20
+# pylint: disable=missing-docstring
 
 import hashlib
 import json
@@ -15,9 +16,12 @@ def main():
     stbranch = 'server_timestamping'
     stdin_input = ''
     for line in sys.stdin:
+        # pylint: disable=consider-using-join
+        # descriptor 'join' for 'str' objects
+        # doesn't apply to a '_io.TextIOWrapper' object
         stdin_input += line
     stdin_data = json.loads(stdin_input)
-    project = dict()
+    project = {}
     if stdin_data['event_name'] == 'push':
         project['id'] = stdin_data['project_id']
         project['ref'] = stdin_data['ref']
@@ -28,15 +32,16 @@ def main():
     if project['ref'] != 'refs/heads/' + project['default_branch']:
         # nothing done on default branch
         sys.exit(0)
-    project['path_with_namespace'] = stdin_data['project']['path_with_namespace']
+    project['path_with_namespace'] = \
+        stdin_data['project']['path_with_namespace']
     # repos in
     #   os.path.join(os.environ['HOME'], 'git-data', 'repositories', '@hashed')
     # /var/opt/gitlab/git-data/repositories/@hashed/
     # we need the hash of project['path_with_namespace']
     # https://docs.gitlab.com/ee/administration/repository_storage_types.html
-    m = hashlib.sha256()
-    m.update(str(project['id']).encode())
-    gitlabhash = m.hexdigest()
+    dohash = hashlib.sha256()
+    dohash.update(str(project['id']).encode())
+    gitlabhash = dohash.hexdigest()
     repopath = os.path.join(
         os.environ['HOME'],
         'git-data', 'repositories', '@hashed',
@@ -56,7 +61,7 @@ def main():
         # git -C tmpdir config user.name os.environ['USER']
         precmd = 'git -C ' + os.path.join(tmpdir, 'repo') + ' config '
         for cmd in ['user.name ' + os.environ.get('USER', 'filehook'),
-                    'user.email ' + os.environ.get('USER', 'filehook') + '@' \
+                    'user.email ' + os.environ.get('USER', 'filehook') + '@'
                     + socket.gethostname()]:
             cpi = subprocess.run(
                 [precmd + cmd],
@@ -70,10 +75,10 @@ def main():
             shell=True, cwd=os.path.join(tmpdir, 'repo'),
             timeout=6, check=False)
         if cpi.returncode:  # server_timestamping not available
-            with open('/tmp/fhst', 'a') as fd:
+            with open('/tmp/fhst', 'a', encoding='utf-8') as fd:
                 fd.write('server_timestamping not available\n')
             cmd = 'git -C ' + os.path.join(tmpdir, 'repo') + \
-              ' branch --quiet ' + stbranch
+                ' branch --quiet ' + stbranch
             subprocess.run(
                 cmd,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -118,7 +123,7 @@ def main():
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 shell=True, cwd=os.path.join(tmpdir, 'repo'),
                 timeout=6, check=True)
-        with open('/tmp/fhst', 'a') as fd:
+        with open('/tmp/fhst', 'a', encoding='utf-8') as fd:
             fd.write('step 13\n')
 
 
