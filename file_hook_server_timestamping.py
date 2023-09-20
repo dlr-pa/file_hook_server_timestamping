@@ -15,12 +15,7 @@ import tempfile
 
 def main():
     stbranch = 'server_timestamping'
-    stdin_input = ''
-    for line in sys.stdin:
-        # pylint: disable=consider-using-join
-        # descriptor 'join' for 'str' objects
-        # doesn't apply to a '_io.TextIOWrapper' object
-        stdin_input += line
+    stdin_input = ''.join(sys.stdin)
     stdin_data = json.loads(stdin_input)
     project = {}
     if stdin_data['event_name'] == 'push':
