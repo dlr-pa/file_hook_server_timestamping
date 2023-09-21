@@ -4,7 +4,7 @@ set -e -v -x
 test -n "$(git config user.name)" || git config --global user.name "testuser"
 hostname=$HOSTNAME
 test -n "$hostname" || hostname="runner"
-test -n "$(git config user.email)" || git config --global user.email $(git config user.name)@$hostname
+test -n "$(git config user.email)" || git config --global user.email "$(git config user.name)@$hostname"
 
 # create fake repo
 p="/root/git-data/repositories/@hashed/4b/22/"
