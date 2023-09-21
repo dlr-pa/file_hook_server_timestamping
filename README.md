@@ -9,6 +9,7 @@ which are signed using a gpg key.
 These commits are stored in the branch `server_timestamping`.
 
 ## config
+
 If you provide a config file `~/.file_hook_server_timestamping.cfg` this will
 be used.
 An example config file is given as [`example_config.cfg`](example_config.cfg).
