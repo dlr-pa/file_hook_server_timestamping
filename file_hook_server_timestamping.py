@@ -99,7 +99,7 @@ def do_server_timestamping(log, config):
         for cmd in ['user.name ' + os.environ.get('USER', 'filehook'),
                     'user.email ' + os.environ.get('USER', 'filehook') + '@'
                     + socket.gethostname(),
-                    'user.signingkey ' + \
+                    'user.signingkey ' +
                     config['server_timestamping']['gpgkey'],
                     'commit.gpgSign 1']:
             cpi = subprocess.run(
