@@ -16,43 +16,7 @@ import sys
 import tempfile
 
 
-def do_server_timestamping():
-    default_config_file = os.path.join(
-        os.environ['HOME'], '.file_hook_server_timestamping.cfg')
-    config = configparser.ConfigParser()
-    config['logging'] = {'name': 'server_timestamping',
-                         'do_console_logging': 'no',
-                         'log_level': 'info'}
-    config['server_timestamping'] = {'branch_name': 'server_timestamping'}
-    with open('a.cfg', 'w') as configfile:
-        config.write(configfile)
-    config.read(default_config_file)
-    with open('b.cfg', 'w') as configfile:
-        config.write(configfile)
-    log = logging.getLogger(config['logging']['name'])
-    if config['logging'].getboolean('do_console_logging'):
-        ch = logging.StreamHandler()  # create console handler
-        ch.setFormatter(
-            logging.Formatter(
-                '%(asctime)s %(name)s %(message)s',
-                datefmt='%Y-%m-%d %H:%M:%S %Z'))
-        log.addHandler(ch)
-    loglevels = {'debug': logging.DEBUG, 'info': logging.INFO,
-                 'warning': logging.WARNING, 'error': logging.ERROR,
-                 'critical': logging.CRITICAL}
-    if config['logging']['log_level'] in loglevels:
-        log.setLevel(loglevels[config['logging']['log_level']])
-    else:
-        log.setLevel(logging.DEBUG)
-    if config.has_option('logging', 'filename'):
-        fh = logging.handlers.WatchedFileHandler(config['logging']['filename'])
-        fh.setFormatter(
-            logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s',
-                              datefmt='%Y-%m-%dT%H:%M:%S_%Z'))
-        log.addHandler(fh)
-    log.info('start file_hook_server_timestamping.py')
-    if os.path.exists(default_config_file):
-        log.info('config file "%s" read', default_config_file)
+def do_server_timestamping(log, config):
     stdin_input = ''.join(sys.stdin)
     log.debug('stdin_input: %s', stdin_input)
     stdin_data = json.loads(stdin_input)
@@ -162,13 +126,48 @@ def do_server_timestamping():
                 shell=True, cwd=os.path.join(tmpdir, 'repo'),
                 timeout=6, check=True)
         log.debug('finished file_hook_server_timestamping.py')
+
+def call_server_timestamping():
+    default_config_file = os.path.join(
+        os.environ['HOME'], '.file_hook_server_timestamping.cfg')
+    config = configparser.ConfigParser()
+    config['logging'] = {'name': 'server_timestamping',
+                         'do_console_logging': 'no',
+                         'log_level': 'info'}
+    config['server_timestamping'] = {'branch_name': 'server_timestamping'}
+    config.read(default_config_file)
+    log = logging.getLogger(config['logging']['name'])
     if config['logging'].getboolean('do_console_logging'):
-        ch.flush()
+        consolehandler = logging.StreamHandler()  # create console handler
+        consolehandler.setFormatter(
+            logging.Formatter(
+                '%(asctime)s %(name)s %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S %Z'))
+        log.addHandler(consolehandler)
+    loglevels = {'debug': logging.DEBUG, 'info': logging.INFO,
+                 'warning': logging.WARNING, 'error': logging.ERROR,
+                 'critical': logging.CRITICAL}
+    if config['logging']['log_level'] in loglevels:
+        log.setLevel(loglevels[config['logging']['log_level']])
+    else:
+        log.setLevel(logging.DEBUG)
     if config.has_option('logging', 'filename'):
-        fh.flush()
+        fhandler = logging.handlers.WatchedFileHandler(
+            config['logging']['filename'])
+        fhandler.setFormatter(
+            logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s',
+                              datefmt='%Y-%m-%dT%H:%M:%S_%Z'))
+        log.addHandler(fhandler)
+    log.info('start file_hook_server_timestamping.py')
+    if os.path.exists(default_config_file):
+        log.info('config file "%s" read', default_config_file)
+    do_server_timestamping(log, config)
+    if config['logging'].getboolean('do_console_logging'):
+        consolehandler.flush()
+    if config.has_option('logging', 'filename'):
+        fhandler.flush()
     # exit
     sys.exit(0)
 
-
 if __name__ == "__main__":
-    do_server_timestamping()
+    call_server_timestamping()
