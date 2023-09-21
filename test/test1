@@ -1,0 +1,5 @@
+#!/bin/bash
+# simple call which does nothing
+set -e -v -x
+
+echo '{"event_name":"repository_update"}' | ./file_hook_server_timestamping.py

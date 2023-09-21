@@ -1,0 +1,29 @@
+#!/bin/bash
+set -e -v -x
+
+test -n "$(git config user.name)" || git config --global user.name "testuser"
+hostname=$HOSTNAME
+test -n "$hostname" || hostname="runner"
+test -n "$(git config user.email)" || git config --global user.email $(git config user.name)@$hostname
+
+# create fake repo
+p="/root/git-data/repositories/@hashed/4b/22/"
+n="4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a"
+mkdir -p "$p"
+(cd "$p" && git init --bare "$n.git")
+d=$(mktemp --directory) || exit
+(cd "$d" && git clone "$p/$n.git")
+(cd "$d/$n" && echo "a" > a)
+(cd "$d/$n" && git add a)
+(cd "$d/$n" && git commit -m foo)
+(cd "$d/$n" && git push)
+
+(cd "$p/$n.git" && git log)
+
+# run test
+echo '{"event_name":"push","project_id":4,"ref":"refs/heads/master","project":{"id":4,"name":"foo","path_with_namespace":"testuser/foo","default_branch":"master"}}' | ./file_hook_server_timestamping.py
+
+d=$(mktemp --directory) || exit
+(cd "$d" && git clone "$p/$n.git")
+(cd "$d/$n" && git checkout server_timestamping)
+(cd "$d/$n" && git log)

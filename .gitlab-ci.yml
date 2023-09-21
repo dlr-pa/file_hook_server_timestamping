@@ -2,7 +2,14 @@ variables:
   DEBIAN_FRONTEND: noninteractive
   APT_GET_INSTALL: "apt-get install -q -y"
 
+stages:
+  - pre
+  - build
+  - test
+  - deploy
+
 pre-commit_alpine:
+  stage: pre
   image:
     # https://hub.docker.com/_/alpine
     name: alpine:latest
@@ -16,6 +23,7 @@ pre-commit_alpine:
     - pre-commit run --all-files
 
 pycodestyle_alpine:
+  stage: pre
   image:
     # https://hub.docker.com/_/alpine
     name: alpine:latest
@@ -28,6 +36,7 @@ pycodestyle_alpine:
     - pycodestyle --show-source --show-pep8 --statistics $(find -name "*.py")
 
 pylint_alpine:
+  stage: pre
   image:
     # https://hub.docker.com/_/alpine
     name: alpine:latest
@@ -40,6 +49,7 @@ pylint_alpine:
     - pylint --persistent n $(find -name "*.py")
 
 pylint_debian:
+  stage: pre
   image:
     # https://hub.docker.com/_/debian
     name: debian:latest
@@ -51,3 +61,17 @@ pylint_debian:
     # run pylint
     - pylint --version
     - pylint --persistent n $(find -name "*.py")
+
+test_debian:
+  stage: test
+  image:
+    # https://hub.docker.com/_/debian
+    name: debian:latest
+  script:
+    - date
+    - cat /etc/os-release
+    - apt-get update
+    - $APT_GET_INSTALL git python3
+    # run tests
+    - ./test/test1
+    - ./test/test2
