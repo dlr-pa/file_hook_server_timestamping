@@ -75,3 +75,4 @@ test_debian:
     # run tests
     - ./test/test1
     - ./test/test2
+    - ./test/test3

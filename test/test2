@@ -8,7 +8,7 @@ test -n "$hostname" || hostname="runner"
 test -n "$(git config user.email)" || git config --global user.email "$(git config user.name)@$hostname"
 
 # create fake repo
-p="/root/git-data/repositories/@hashed/4b/22/"
+p="$HOME/git-data/repositories/@hashed/4b/22/"
 n="4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a"
 mkdir -p "$p"
 (cd "$p" && git init --bare "$n.git")

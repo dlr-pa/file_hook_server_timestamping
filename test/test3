@@ -1,0 +1,82 @@
+#!/bin/bash
+set -e -v -x
+
+### configure git ###
+test -n "$(git config user.name)" || git config --global user.name "testuser"
+hostname=$HOSTNAME
+test -n "$hostname" || hostname="runner"
+test -n "$(git config user.email)" || git config --global user.email "$(git config user.name)@$hostname"
+
+git config --global init.defaultBranch main
+
+### create fake repo ###
+p="$HOME/git-data/repositories/@hashed/e7/f6/"
+n="e7f6c011776e8db7cd330b54174fd76f7d0216b612387a5ffcfb81e6f0919683"
+mkdir -p "$p"
+(cd "$p" && git init --bare "$n.git")
+d=$(mktemp --directory) || exit
+(cd "$d" && git clone "$p/$n.git")
+(cd "$d/$n" && echo "a" > a)
+(cd "$d/$n" && git add a)
+(cd "$d/$n" && git commit -m foo)
+(cd "$d/$n" && git push)
+
+(cd "$p/$n.git" && git log --all --decorate --oneline --graph)
+
+### run test ###
+echo '{"event_name":"push","project_id":6,"ref":"refs/heads/main","project":{"id":6,"name":"foo","path_with_namespace":"testuser/foo","default_branch":"main"}}' | ./file_hook_server_timestamping.py
+
+### log of default branch ###
+(cd "$p/$n.git" && git log --all --decorate --oneline --graph)
+
+### log of server_timestamping branch ###
+(cd "$p/$n.git" && git log --all --decorate --oneline --graph server_timestamping)
+
+### test result ###
+m=$(cd "$p/$n.git" && git log --author=filehook --grep="signing commit" server_timestamping | grep -c Author:)
+test 1 -eq "$m"
+
+### run test ###
+(cd "$d/$n" && git branch bar)
+(cd "$d/$n" && git checkout bar)
+(cd "$d/$n" && date > a)
+(cd "$d/$n" && git add a)
+(cd "$d/$n" && git commit -m bar)
+(cd "$d/$n" && git push --set-upstream origin bar)
+
+# test: nothing done on default branch
+echo '{"event_name":"push","project_id":6,"ref":"refs/heads/bar","project":{"id":6,"name":"foo","path_with_namespace":"testuser/foo","default_branch":"main"}}' | ./file_hook_server_timestamping.py
+
+### log of default branch ###
+(cd "$p/$n.git" && git log --all --decorate --oneline --graph)
+
+### log of server_timestamping branch ###
+(cd "$p/$n.git" && git log --all --decorate --oneline --graph server_timestamping)
+
+### log of bar branch ###
+(cd "$p/$n.git" && git log --all --decorate --oneline --graph bar)
+
+### test result ###
+m=$(cd "$p/$n.git" && git log --author=filehook --grep="signing commit" server_timestamping | grep -c Author:)
+test 1 -eq "$m"
+
+### run test ###
+(cd "$d/$n" && git branch --list --all)
+(cd "$d/$n" && git checkout main)
+(cd "$d/$n" && git merge bar)
+(cd "$d/$n" && git push)
+
+echo '{"event_name":"push","project_id":6,"ref":"refs/heads/main","project":{"id":6,"name":"foo","path_with_namespace":"testuser/foo","default_branch":"main"}}' | ./file_hook_server_timestamping.py
+
+### log of default branch ###
+(cd "$p/$n.git" && git log --all --decorate --oneline --graph)
+
+### log of server_timestamping branch ###
+(cd "$p/$n.git" && git log --all --decorate --oneline --graph server_timestamping )
+
+### log of bar branch ###
+(cd "$p/$n.git" && git log --all --decorate --oneline --graph bar)
+
+### test result ###
+m=$(cd "$p/$n.git" && git log --author=filehook --grep="signing commit" server_timestamping | grep -c Author:)
+test 2 -eq "$m"

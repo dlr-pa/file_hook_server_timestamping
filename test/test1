@@ -2,4 +2,5 @@
 # simple call which does nothing
 set -e -v -x
 
+# test: other event, not interesting for us
 echo '{"event_name":"repository_update"}' | ./file_hook_server_timestamping.py
