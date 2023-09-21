@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e -v -x
 
+# configure git
 test -n "$(git config user.name)" || git config --global user.name "testuser"
 hostname=$HOSTNAME
 test -n "$hostname" || hostname="runner"
@@ -23,7 +24,9 @@ d=$(mktemp --directory) || exit
 # run test
 echo '{"event_name":"push","project_id":4,"ref":"refs/heads/master","project":{"id":4,"name":"foo","path_with_namespace":"testuser/foo","default_branch":"master"}}' | ./file_hook_server_timestamping.py
 
-d=$(mktemp --directory) || exit
-(cd "$d" && git clone "$p/$n.git")
-(cd "$d/$n" && git checkout server_timestamping)
-(cd "$d/$n" && git log)
+(cd "$p/$n.git" && git log server_timestamping)
+
+(cd "$p/$n.git" && git log --author=filehook --grep="signing commit" server_timestamping)
+
+# The next will fail if no matching commit is available:
+(cd "$p/$n.git" && git log --author=filehook --grep="signing commit" server_timestamping | grep Author)
