@@ -76,3 +76,9 @@ test_debian:
     - ./test/test1
     - ./test/test2
     - ./test/test3
+    - rm -rf ~/git-data
+    - ln -s $(pwd)/example_config.cfg ~/.file_hook_server_timestamping.cfg
+    - ./test/test1
+    - ./test/test2
+    - ./test/test3
+    - cat /tmp/file_hook_server_timestamping.log

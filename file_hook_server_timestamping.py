@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # Author: Daniel Mohr
-# Date: 2022-08-23, 2022-09-22, 2022-10-19, 2023-09-20
+# Date: 2022-08-23, 2022-09-22, 2022-10-19, 2023-09-20, 2023-09-21
 # License: BSD 3-Clause License
 # pylint: disable=missing-docstring
 
+import configparser
 import hashlib
 import json
+import logging
+import logging.handlers
 import os
 import socket
 import subprocess
@@ -13,9 +16,45 @@ import sys
 import tempfile
 
 
-def main():
-    stbranch = 'server_timestamping'
+def do_server_timestamping():
+    default_config_file = os.path.join(
+        os.environ['HOME'], '.file_hook_server_timestamping.cfg')
+    config = configparser.ConfigParser()
+    config['logging'] = {'name': 'server_timestamping',
+                         'do_console_logging': 'no',
+                         'log_level': 'info'}
+    config['server_timestamping'] = {'branch_name': 'server_timestamping'}
+    with open('a.cfg', 'w') as configfile:
+        config.write(configfile)
+    config.read(default_config_file)
+    with open('b.cfg', 'w') as configfile:
+        config.write(configfile)
+    log = logging.getLogger(config['logging']['name'])
+    if config['logging'].getboolean('do_console_logging'):
+        ch = logging.StreamHandler()  # create console handler
+        ch.setFormatter(
+            logging.Formatter(
+                '%(asctime)s %(name)s %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S %Z'))
+        log.addHandler(ch)
+    loglevels = {'debug': logging.DEBUG, 'info': logging.INFO,
+                 'warning': logging.WARNING, 'error': logging.ERROR,
+                 'critical': logging.CRITICAL}
+    if config['logging']['log_level'] in loglevels:
+        log.setLevel(loglevels[config['logging']['log_level']])
+    else:
+        log.setLevel(logging.DEBUG)
+    if config.has_option('logging', 'filename'):
+        fh = logging.handlers.WatchedFileHandler(config['logging']['filename'])
+        fh.setFormatter(
+            logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s',
+                              datefmt='%Y-%m-%dT%H:%M:%S_%Z'))
+        log.addHandler(fh)
+    log.info('start file_hook_server_timestamping.py')
+    if os.path.exists(default_config_file):
+        log.info('config file "%s" read', default_config_file)
     stdin_input = ''.join(sys.stdin)
+    log.debug('stdin_input: %s', stdin_input)
     stdin_data = json.loads(stdin_input)
     project = {}
     if stdin_data['event_name'] == 'push':
@@ -65,23 +104,25 @@ def main():
                 shell=True, cwd=os.path.join(tmpdir, 'repo'),
                 timeout=6, check=False)
         # check branch 'server_timestamping' available
+        cmd = 'git branch --list --all | grep --quiet ' + \
+            config['server_timestamping']['branch_name']
         cpi = subprocess.run(
-            ['git branch --list --all | grep --quiet ' + stbranch],
+            cmd,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             shell=True, cwd=os.path.join(tmpdir, 'repo'),
             timeout=6, check=False)
         if cpi.returncode:  # server_timestamping not available
-            with open('/tmp/fhst', 'a', encoding='utf-8') as fd:
-                fd.write('server_timestamping not available\n')
+            log.debug('branch server_timestamping not available')
             cmd = 'git -C ' + os.path.join(tmpdir, 'repo') + \
-                ' branch --quiet ' + stbranch
+                ' branch --quiet ' + \
+                config['server_timestamping']['branch_name']
             subprocess.run(
                 cmd,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 shell=True, cwd=os.path.join(tmpdir, 'repo'),
                 timeout=6, check=True)
         # Unfortunately, 'git checkout' creates a working tree.
-        cmd = 'git checkout ' + stbranch
+        cmd = 'git checkout ' + config['server_timestamping']['branch_name']
         subprocess.run(
             cmd,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -106,7 +147,8 @@ def main():
             shell=True, cwd=os.path.join(tmpdir, 'repo'),
             timeout=6, check=True)
         if cpi.returncode:  # server_timestamping was not available
-            cmd = 'git push --set-upstream origin ' + stbranch
+            cmd = 'git push --set-upstream origin ' + \
+                config['server_timestamping']['branch_name']
             subprocess.run(
                 cmd,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -119,9 +161,14 @@ def main():
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 shell=True, cwd=os.path.join(tmpdir, 'repo'),
                 timeout=6, check=True)
-        with open('/tmp/fhst', 'a', encoding='utf-8') as fd:
-            fd.write('step 13\n')
+        log.debug('finished file_hook_server_timestamping.py')
+    if config['logging'].getboolean('do_console_logging'):
+        ch.flush()
+    if config.has_option('logging', 'filename'):
+        fh.flush()
+    # exit
+    sys.exit(0)
 
 
 if __name__ == "__main__":
-    main()
+    do_server_timestamping()
