@@ -16,7 +16,7 @@ import sys
 import tempfile
 
 
-def do_server_timestamping(log, config):
+def analyse_stdin_input(log):
     stdin_input = ''.join(sys.stdin)
     log.debug('stdin_input: %s', stdin_input)
     stdin_data = json.loads(stdin_input)
@@ -33,6 +33,11 @@ def do_server_timestamping(log, config):
         sys.exit(0)
     project['path_with_namespace'] = \
         stdin_data['project']['path_with_namespace']
+    return project
+
+
+def do_server_timestamping(log, config):
+    project = analyse_stdin_input(log)
     # repos in
     #   os.path.join(os.environ['HOME'], 'git-data', 'repositories', '@hashed')
     # /var/opt/gitlab/git-data/repositories/@hashed/
@@ -127,6 +132,7 @@ def do_server_timestamping(log, config):
                 timeout=6, check=True)
         log.debug('finished file_hook_server_timestamping.py')
 
+
 def call_server_timestamping():
     default_config_file = os.path.join(
         os.environ['HOME'], '.file_hook_server_timestamping.cfg')
@@ -168,6 +174,7 @@ def call_server_timestamping():
         fhandler.flush()
     # exit
     sys.exit(0)
+
 
 if __name__ == "__main__":
     call_server_timestamping()
