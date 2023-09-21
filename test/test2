@@ -19,14 +19,20 @@ d=$(mktemp --directory) || exit
 (cd "$d/$n" && git commit -m foo)
 (cd "$d/$n" && git push)
 
+### log of default branch ###
 (cd "$p/$n.git" && git log)
 
 # run test
 echo '{"event_name":"push","project_id":4,"ref":"refs/heads/master","project":{"id":4,"name":"foo","path_with_namespace":"testuser/foo","default_branch":"master"}}' | ./file_hook_server_timestamping.py
 
-(cd "$p/$n.git" && git log server_timestamping)
-
-(cd "$p/$n.git" && git log --author=filehook --grep="signing commit" server_timestamping)
+### log of server_timestamping branch ###
+(cd "$p/$n.git" && git log --show-signature server_timestamping)
 
 # The next will fail if no matching commit is available:
 (cd "$p/$n.git" && git log --author=filehook --grep="signing commit" server_timestamping | grep Author)
+
+m=$(cd "$p/$n.git" && git log --author=filehook --grep="signing commit" server_timestamping | grep -c Author:)
+test 1 -eq "$m"
+
+m=$(cd "$p/$n.git" && git log --show-signature --author=filehook --grep="signing commit" server_timestamping | grep -i -c 'good signature')
+test 1 -eq "$m"

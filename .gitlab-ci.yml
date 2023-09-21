@@ -71,7 +71,7 @@ test_debian:
     - date
     - cat /etc/os-release
     - apt-get update
-    - $APT_GET_INSTALL git python3
+    - $APT_GET_INSTALL git gpg python3
     # run tests
     - ./test/test1
     - ./test/test2

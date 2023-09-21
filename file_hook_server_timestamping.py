@@ -10,10 +10,16 @@ import json
 import logging
 import logging.handlers
 import os
+import re
 import socket
 import subprocess
 import sys
 import tempfile
+
+DEFAULT_CONFIG_FILE = os.path.join(
+    os.environ['HOME'], '.file_hook_server_timestamping.cfg')
+DEFAULT_GPGKEY_FILE = os.path.join(
+    os.environ['HOME'], '.file_hook_server_timestamping_gpgkey.cfg')
 
 
 def analyse_stdin_input(log):
@@ -36,8 +42,34 @@ def analyse_stdin_input(log):
     return project
 
 
+def check_gpg_key_available(log, config):
+    if config.has_option('server_timestamping', 'gpgkey'):
+        log.debug('gpg key %s can be used',
+                  config['server_timestamping']['gpgkey'])
+    else:
+        log.info('no gpg key available, will create one')
+        cmd = 'gpg --batch --quick-generate-key --passphrase "" ' + \
+            '"$USER@$(hostname)" future-default default never'
+        cpi = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            shell=True,
+            timeout=6, check=True)
+        gpgkey = re.search(
+            rb'revocation certificate stored as \'.*/([0-9A-Z]+).rev\'',
+            cpi.stderr).group(1).decode()
+        keyconfig = configparser.ConfigParser()
+        keyconfig['server_timestamping'] = {'gpgkey': gpgkey}
+        with open(DEFAULT_GPGKEY_FILE, 'w', encoding='utf8') as configfile:
+            keyconfig.write(configfile)
+        config.read(DEFAULT_GPGKEY_FILE)
+        log.debug('created gpg key %s',
+                  config['server_timestamping']['gpgkey'])
+
+
 def do_server_timestamping(log, config):
     project = analyse_stdin_input(log)
+    check_gpg_key_available(log, config)
     # repos in
     #   os.path.join(os.environ['HOME'], 'git-data', 'repositories', '@hashed')
     # /var/opt/gitlab/git-data/repositories/@hashed/
@@ -66,7 +98,10 @@ def do_server_timestamping(log, config):
         precmd = 'git -C ' + os.path.join(tmpdir, 'repo') + ' config '
         for cmd in ['user.name ' + os.environ.get('USER', 'filehook'),
                     'user.email ' + os.environ.get('USER', 'filehook') + '@'
-                    + socket.gethostname()]:
+                    + socket.gethostname(),
+                    'user.signingkey ' + \
+                    config['server_timestamping']['gpgkey'],
+                    'commit.gpgSign 1']:
             cpi = subprocess.run(
                 [precmd + cmd],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -134,14 +169,12 @@ def do_server_timestamping(log, config):
 
 
 def call_server_timestamping():
-    default_config_file = os.path.join(
-        os.environ['HOME'], '.file_hook_server_timestamping.cfg')
     config = configparser.ConfigParser()
     config['logging'] = {'name': 'server_timestamping',
                          'do_console_logging': 'no',
                          'log_level': 'info'}
     config['server_timestamping'] = {'branch_name': 'server_timestamping'}
-    config.read(default_config_file)
+    config.read([DEFAULT_GPGKEY_FILE, DEFAULT_CONFIG_FILE])
     log = logging.getLogger(config['logging']['name'])
     if config['logging'].getboolean('do_console_logging'):
         consolehandler = logging.StreamHandler()  # create console handler
@@ -165,8 +198,8 @@ def call_server_timestamping():
                               datefmt='%Y-%m-%dT%H:%M:%S_%Z'))
         log.addHandler(fhandler)
     log.info('start file_hook_server_timestamping.py')
-    if os.path.exists(default_config_file):
-        log.info('config file "%s" read', default_config_file)
+    if os.path.exists(DEFAULT_CONFIG_FILE):
+        log.info('config file "%s" read', DEFAULT_CONFIG_FILE)
     do_server_timestamping(log, config)
     if config['logging'].getboolean('do_console_logging'):
         consolehandler.flush()

@@ -21,6 +21,7 @@ d=$(mktemp --directory) || exit
 (cd "$d/$n" && git commit -m foo)
 (cd "$d/$n" && git push)
 
+### log of default branch ###
 (cd "$p/$n.git" && git log --all --decorate --oneline --graph)
 
 ### run test ###
@@ -30,7 +31,7 @@ echo '{"event_name":"push","project_id":6,"ref":"refs/heads/main","project":{"id
 (cd "$p/$n.git" && git log --all --decorate --oneline --graph)
 
 ### log of server_timestamping branch ###
-(cd "$p/$n.git" && git log --all --decorate --oneline --graph server_timestamping)
+(cd "$p/$n.git" && git log --show-signature --all --decorate --oneline --graph server_timestamping)
 
 ### test result ###
 m=$(cd "$p/$n.git" && git log --author=filehook --grep="signing commit" server_timestamping | grep -c Author:)
@@ -51,7 +52,7 @@ echo '{"event_name":"push","project_id":6,"ref":"refs/heads/bar","project":{"id"
 (cd "$p/$n.git" && git log --all --decorate --oneline --graph)
 
 ### log of server_timestamping branch ###
-(cd "$p/$n.git" && git log --all --decorate --oneline --graph server_timestamping)
+(cd "$p/$n.git" && git log --show-signature --all --decorate --oneline --graph server_timestamping)
 
 ### log of bar branch ###
 (cd "$p/$n.git" && git log --all --decorate --oneline --graph bar)
@@ -72,11 +73,17 @@ echo '{"event_name":"push","project_id":6,"ref":"refs/heads/main","project":{"id
 (cd "$p/$n.git" && git log --all --decorate --oneline --graph)
 
 ### log of server_timestamping branch ###
-(cd "$p/$n.git" && git log --all --decorate --oneline --graph server_timestamping )
+(cd "$p/$n.git" && git log --show-signature --all --decorate --oneline --graph server_timestamping )
 
 ### log of bar branch ###
 (cd "$p/$n.git" && git log --all --decorate --oneline --graph bar)
 
 ### test result ###
 m=$(cd "$p/$n.git" && git log --author=filehook --grep="signing commit" server_timestamping | grep -c Author:)
+test 2 -eq "$m"
+
+m=$(cd "$p/$n.git" && git log --show-signature --author=filehook --grep="signing commit" server_timestamping | grep -i -c 'good signature')
+test 2 -eq "$m"
+
+m=$(cd "$p/$n.git" && git log --show-signature server_timestamping | grep -i -c 'good signature')
 test 2 -eq "$m"
