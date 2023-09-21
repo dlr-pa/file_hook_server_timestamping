@@ -13,7 +13,7 @@ These commits are stored in the branch `server_timestamping`.
 Hint: Sometimes gpg cannot create `/var/opt/gitlab/.gnupg` due to permissions.
 Workaround:
 
-```
+```sh
 mkdir /var/opt/gitlab/.gnupg
 chown git:git /var/opt/gitlab/.gnupg
 ```
@@ -21,7 +21,7 @@ chown git:git /var/opt/gitlab/.gnupg
 Hint: Sometimes `/var/opt/gitlab/` is owned by root.
 Workaround:
 
-```
+```sh
 touch /var/opt/gitlab/.file_hook_server_timestamping_gpgkey.cfg
 chown git:git /var/opt/gitlab/.file_hook_server_timestamping_gpgkey.cfg
 ```
@@ -35,7 +35,7 @@ An example config file is given as [`example_config.cfg`](example_config.cfg).
 Hint: Sometimes `/var/opt/gitlab/` is owned by root.
 Workaround:
 
-```
+```sh
 touch /var/opt/gitlab/.file_hook_server_timestamping.cfg
 chown git:git /var/opt/gitlab/.file_hook_server_timestamping.cfg
 ```
