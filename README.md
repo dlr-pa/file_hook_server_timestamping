@@ -39,3 +39,10 @@ Workaround:
 touch /var/opt/gitlab/.file_hook_server_timestamping.cfg
 chown git:git /var/opt/gitlab/.file_hook_server_timestamping.cfg
 ```
+
+## limitation and hints
+
+`file_hook_server_timestamping.py` works only on a single note GitLab instance.
+
+[GitLab UI signing commits](https://docs.gitlab.com/ee/administration/gitaly/configure_gitaly.html#configure-commit-signing-for-gitlab-ui-commits)
+is not comparable. It only signs commits done by using the web interface.
