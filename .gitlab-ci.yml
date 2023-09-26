@@ -62,17 +62,7 @@ pylint_debian:
     - pylint --version
     - pylint --persistent n $(find -name "*.py")
 
-test_debian:
-  stage: test
-  image:
-    # https://hub.docker.com/_/debian
-    name: debian:latest
-  script:
-    - date
-    - cat /etc/os-release
-    - apt-get update
-    - $APT_GET_INSTALL git gpg python3
-    # run tests
+.test_template: &test_template
     - ./test/test1
     - ./test/test2
     - ./test/test3
@@ -82,3 +72,73 @@ test_debian:
     - ./test/test2
     - ./test/test3
     - cat /tmp/file_hook_server_timestamping.log
+
+.debian_based_test_template: &debian_based_test_template
+  stage: test
+  script:
+    - date
+    - cat /etc/os-release
+    - apt-get update
+    - $APT_GET_INSTALL git gpg python3
+    # run tests
+    - *test
+
+test_ubuntu_20.04:
+  image:
+    # https://hub.docker.com/_/ubuntu
+    name: ubuntu:20.04
+  <<: *debian_based_test
+
+test_ubuntu_22.04:
+  image:
+    # https://hub.docker.com/_/ubuntu
+    name: ubuntu:22.04
+  <<: *debian_based_test
+
+test_ubuntu_latest:
+  image:
+    # https://hub.docker.com/_/ubuntu
+    name: ubuntu:latest
+  <<: *debian_based_test
+
+test_debian_11:
+  image:
+    # https://hub.docker.com/_/debian
+    name: debian:11
+  <<: *debian_based_test
+
+test_debian_12:
+  image:
+    # https://hub.docker.com/_/debian
+    name: debian:12
+  <<: *debian_based_test
+
+test_debian_latest:
+  image:
+    # https://hub.docker.com/_/debian
+    name: debian:latest
+  <<: *debian_based_test
+
+test_almalinux_latest:
+  image:
+    # https://hub.docker.com/_/almalinux
+    name: almalinux:latest
+  stage: test
+  script:
+    - date
+    - cat /etc/os-release
+    - yum -y install git
+    # run tests
+    - *test
+
+test_opensuse_leap_latest:
+  image:
+    # https://hub.docker.com/r/opensuse/leap
+    name: opensuse/leap:latest
+  stage: test
+  script:
+    - date
+    - cat /etc/os-release
+    - zypper --non-interactive install git python3
+    # run tests
+    - *test
