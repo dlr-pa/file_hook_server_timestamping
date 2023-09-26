@@ -111,7 +111,7 @@ test_debian_12:
   image:
     # https://hub.docker.com/_/debian
     name: debian:12
-  <<: *debian_based_test
+  <<: *debian_based_test_template
 
 test_debian_latest:
   image:
