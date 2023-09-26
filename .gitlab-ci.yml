@@ -81,31 +81,31 @@ pylint_debian:
     - apt-get update
     - $APT_GET_INSTALL git gpg python3
     # run tests
-    - *test
+    - *test_template
 
 test_ubuntu_20.04:
   image:
     # https://hub.docker.com/_/ubuntu
     name: ubuntu:20.04
-  <<: *debian_based_test
+  <<: *debian_based_test_template
 
 test_ubuntu_22.04:
   image:
     # https://hub.docker.com/_/ubuntu
     name: ubuntu:22.04
-  <<: *debian_based_test
+  <<: *debian_based_test_template
 
 test_ubuntu_latest:
   image:
     # https://hub.docker.com/_/ubuntu
     name: ubuntu:latest
-  <<: *debian_based_test
+  <<: *debian_based_test_template
 
 test_debian_11:
   image:
     # https://hub.docker.com/_/debian
     name: debian:11
-  <<: *debian_based_test
+  <<: *debian_based_test_template
 
 test_debian_12:
   image:
@@ -117,7 +117,7 @@ test_debian_latest:
   image:
     # https://hub.docker.com/_/debian
     name: debian:latest
-  <<: *debian_based_test
+  <<: *debian_based_test_template
 
 test_almalinux_latest:
   image:
@@ -129,7 +129,7 @@ test_almalinux_latest:
     - cat /etc/os-release
     - yum -y install git
     # run tests
-    - *test
+    - *test_template
 
 test_opensuse_leap_latest:
   image:
@@ -141,4 +141,4 @@ test_opensuse_leap_latest:
     - cat /etc/os-release
     - zypper --non-interactive install git python3
     # run tests
-    - *test
+    - *test_template
