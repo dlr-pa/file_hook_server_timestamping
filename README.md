@@ -55,7 +55,6 @@ chmod 640 /var/opt/gitlab/.file_hook_server_timestamping.cfg
 
 Or you can directly install the `example_config.cfg` and edit it afterwards:
 
-
 ```sh
 install --group=git --owner=git --mode=640 example_config.cfg /var/opt/gitlab/.file_hook_server_timestamping.cfg
 ```
