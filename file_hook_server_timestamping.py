@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
-# Author: Daniel Mohr
-# Date: 2022-08-23, 2022-09-22, 2022-10-19, 2023-09-20, 2023-09-21
-# License: BSD 3-Clause License
-# pylint: disable=missing-docstring
+"""
+'file_hook_server_timestamping.py' is a file hook for a GitLab instance.
+It creates an empty commit for every push to the default branch
+which are signed using a gpg key.
+As default these commits are stored in the branch 'server_timestamping'.
+But you can define the branch in the configuration file.
+
+Author: Daniel Mohr
+Date: 2022-08-23, 2022-09-22, 2022-10-19, 2023-09-20, 2023-09-21
+License: BSD 3-Clause License
+"""
 
 import configparser
 import hashlib
@@ -23,6 +30,12 @@ DEFAULT_GPGKEY_FILE = os.path.join(
 
 
 def analyse_stdin_input(log):
+    """
+    Author: Daniel Mohr
+    Date: 2023-09-21
+
+    Read the input from stdin and parse it as json.
+    """
     stdin_input = ''.join(sys.stdin)
     log.debug('stdin_input: %s', stdin_input)
     stdin_data = json.loads(stdin_input)
@@ -43,6 +56,14 @@ def analyse_stdin_input(log):
 
 
 def check_gpg_key_available(log, config):
+    """
+    Author: Daniel Mohr
+    Date: 2023-09-21
+
+    Check if a gpg key is configured.
+    Otherwise create a gpg key and
+    configure it by storing the name in the config file.
+    """
     if config.has_option('server_timestamping', 'gpgkey'):
         log.debug('gpg key %s can be used',
                   config['server_timestamping']['gpgkey'])
@@ -68,6 +89,10 @@ def check_gpg_key_available(log, config):
 
 
 def do_server_timestamping(log, config):
+    """
+    Author: Daniel Mohr
+    Date: 2023-09-21
+    """
     project = analyse_stdin_input(log)
     check_gpg_key_available(log, config)
     # repos in
@@ -169,6 +194,10 @@ def do_server_timestamping(log, config):
 
 
 def call_server_timestamping():
+    """
+    Author: Daniel Mohr
+    Date: 2023-09-21
+    """
     config = configparser.ConfigParser()
     config['logging'] = {'name': 'server_timestamping',
                          'do_console_logging': 'no',
