@@ -7,7 +7,15 @@ hostname=$HOSTNAME
 test -n "$hostname" || hostname="runner"
 test -n "$(git config user.email)" || git config --global user.email "$(git config user.name)@$hostname"
 
-git config --global init.defaultBranch main
+source /etc/os-release
+if [ "20.04" = "$VERSION_ID" ]; then
+    # we are on ubuntu 20.04 and the default branch for git is master
+    # reconfigure is not trivial
+    defaultbranch=master
+else
+    git config --global init.defaultBranch main
+    defaultbranch=main
+fi
 
 ### create fake repo ###
 p="$HOME/git-data/repositories/@hashed/e7/f6/"
@@ -25,7 +33,7 @@ d=$(mktemp --directory) || exit
 (cd "$p/$n.git" && git log --all --decorate --oneline --graph)
 
 ### run test ###
-echo '{"event_name":"push","project_id":6,"ref":"refs/heads/main","project":{"id":6,"name":"foo","path_with_namespace":"testuser/foo","default_branch":"main"}}' | ./file_hook_server_timestamping.py
+echo "{\"event_name\":\"push\",\"project_id\":6,\"ref\":\"refs/heads/$defaultbranch\",\"project\":{\"id\":6,\"name\":\"foo\",\"path_with_namespace\":\"testuser/foo\",\"default_branch\":\"$defaultbranch\"}}" | ./file_hook_server_timestamping.py
 
 ### log of default branch ###
 (cd "$p/$n.git" && git log --all --decorate --oneline --graph)
@@ -46,7 +54,7 @@ test 1 -eq "$m"
 (cd "$d/$n" && git push --set-upstream origin bar)
 
 # test: nothing done on default branch
-echo '{"event_name":"push","project_id":6,"ref":"refs/heads/bar","project":{"id":6,"name":"foo","path_with_namespace":"testuser/foo","default_branch":"main"}}' | ./file_hook_server_timestamping.py
+echo "{\"event_name\":\"push\",\"project_id\":6,\"ref\":\"refs/heads/bar\",\"project\":{\"id\":6,\"name\":\"foo\",\"path_with_namespace\":\"testuser/foo\",\"default_branch\":\"$defaultbranch\"}}" | ./file_hook_server_timestamping.py
 
 ### log of default branch ###
 (cd "$p/$n.git" && git log --all --decorate --oneline --graph)
@@ -63,11 +71,11 @@ test 1 -eq "$m"
 
 ### run test ###
 (cd "$d/$n" && git branch --list --all)
-(cd "$d/$n" && git checkout main)
+(cd "$d/$n" && git checkout $defaultbranch)
 (cd "$d/$n" && git merge bar)
 (cd "$d/$n" && git push)
 
-echo '{"event_name":"push","project_id":6,"ref":"refs/heads/main","project":{"id":6,"name":"foo","path_with_namespace":"testuser/foo","default_branch":"main"}}' | ./file_hook_server_timestamping.py
+echo "{\"event_name\":\"push\",\"project_id\":6,\"ref\":\"refs/heads/$defaultbranch\",\"project\":{\"id\":6,\"name\":\"foo\",\"path_with_namespace\":\"testuser/foo\",\"default_branch\":\"$defaultbranch\"}}" | ./file_hook_server_timestamping.py
 
 ### log of default branch ###
 (cd "$p/$n.git" && git log --all --decorate --oneline --graph)
