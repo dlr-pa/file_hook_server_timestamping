@@ -132,6 +132,42 @@ test_almalinux_latest:
     # run tests
     - *test_template
 
+test_almalinux_8-minimal:
+  image:
+    # https://hub.docker.com/_/almalinux
+    name: almalinux:8-minimal
+  stage: test
+  script:
+    - date
+    - cat /etc/os-release
+    - microdnf -y install git python3
+    # run tests
+    - *test_template
+
+test_almalinux_9-minimal:
+  image:
+    # https://hub.docker.com/_/almalinux
+    name: almalinux:9-minimal
+  stage: test
+  script:
+    - date
+    - cat /etc/os-release
+    - microdnf -y install git python3
+    # run tests
+    - *test_template
+
+test_almalinux_minimal:
+  image:
+    # https://hub.docker.com/_/almalinux
+    name: almalinux:minimal
+  stage: test
+  script:
+    - date
+    - cat /etc/os-release
+    - microdnf -y install git python3
+    # run tests
+    - *test_template
+
 test_opensuse_leap_latest:
   image:
     # https://hub.docker.com/r/opensuse/leap
