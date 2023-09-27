@@ -8,14 +8,17 @@ stages:
   - test
   - deploy
 
+.env_template: &env_template
+    - date
+    - cat /etc/os-release
+
 pre-commit_alpine:
   stage: pre
   image:
     # https://hub.docker.com/_/alpine
     name: alpine:latest
   script:
-    - date
-    - cat /etc/os-release
+    - *env_template
     - apk add --no-cache bash gcc git musl-dev npm py3-pip python3-dev
     - pip install pre-commit
     # run pre-commit
@@ -28,8 +31,7 @@ pycodestyle_alpine:
     # https://hub.docker.com/_/alpine
     name: alpine:latest
   script:
-    - date
-    - cat /etc/os-release
+    - *env_template
     - apk add --no-cache py3-pycodestyle
     # check PEP 8 code style (pycodestyle was formerly called pep8)
     - pycodestyle --version
@@ -41,8 +43,7 @@ pylint_alpine:
     # https://hub.docker.com/_/alpine
     name: alpine:latest
   script:
-    - date
-    - cat /etc/os-release
+    - *env_template
     - apk add --no-cache py3-pylint
     # run pylint
     - pylint --version
@@ -54,8 +55,7 @@ pylint_debian:
     # https://hub.docker.com/_/debian
     name: debian:latest
   script:
-    - date
-    - cat /etc/os-release
+    - *env_template
     - apt-get update
     - $APT_GET_INSTALL pylint
     # run pylint
@@ -76,10 +76,17 @@ pylint_debian:
 .debian_based_test_template: &debian_based_test_template
   stage: test
   script:
-    - date
-    - cat /etc/os-release
+    - *env_template
     - apt-get update
     - $APT_GET_INSTALL git gpg python3
+    # run tests
+    - *test_template
+
+.almalinux_minimal_based_test_template: &almalinux_minimal_based_test_template
+  stage: test
+  script:
+    - *env_template
+    - microdnf -y install git python3
     # run tests
     - *test_template
 
@@ -126,8 +133,7 @@ test_almalinux_latest:
     name: almalinux:latest
   stage: test
   script:
-    - date
-    - cat /etc/os-release
+    - *env_template
     - yum -y install git
     # run tests
     - *test_template
@@ -136,37 +142,19 @@ test_almalinux_8-minimal:
   image:
     # https://hub.docker.com/_/almalinux
     name: almalinux:8-minimal
-  stage: test
-  script:
-    - date
-    - cat /etc/os-release
-    - microdnf -y install git python3
-    # run tests
-    - *test_template
+  <<: *almalinux_minimal_based_test_template
 
 test_almalinux_9-minimal:
   image:
     # https://hub.docker.com/_/almalinux
     name: almalinux:9-minimal
-  stage: test
-  script:
-    - date
-    - cat /etc/os-release
-    - microdnf -y install git python3
-    # run tests
-    - *test_template
+  <<: *almalinux_minimal_based_test_template
 
 test_almalinux_minimal:
   image:
     # https://hub.docker.com/_/almalinux
     name: almalinux:minimal
-  stage: test
-  script:
-    - date
-    - cat /etc/os-release
-    - microdnf -y install git python3
-    # run tests
-    - *test_template
+  <<: *almalinux_minimal_based_test_template
 
 test_opensuse_leap_latest:
   image:
@@ -174,8 +162,7 @@ test_opensuse_leap_latest:
     name: opensuse/leap:latest
   stage: test
   script:
-    - date
-    - cat /etc/os-release
+    - *env_template
     - zypper --non-interactive install git python3
     # run tests
     - *test_template
