@@ -122,10 +122,8 @@ test_debian_latest:
 test_almalinux_latest:
   image:
     # https://hub.docker.com/_/almalinux
-    name: almalinux:latest
-  tags:
     # almalinux needs support for x86-64-v2 (cpu flag sse4_2)
-    - dlr-pa
+    name: almalinux:latest
   stage: test
   script:
     - date
