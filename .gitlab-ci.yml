@@ -42,7 +42,7 @@ pylint_alpine:
   script:
     - apk add --no-cache py3-pylint
     - pylint --version
-    - pylint --persistent n $(find -name "*.py")
+    - pylint $(find -name "*.py")
 
 pylint_debian:
   stage: pre

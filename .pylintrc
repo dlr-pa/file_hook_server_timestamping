@@ -4,6 +4,9 @@
 jobs=0
 verbose=yes
 
+# Pickle collected data for later comparisons.
+persistent=yes
+
 [REPORTS]
 
 # Tells whether to display a full report or only the messages
