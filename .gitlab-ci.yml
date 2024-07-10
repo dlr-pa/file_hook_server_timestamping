@@ -15,13 +15,10 @@ stages:
 pre-commit_alpine:
   stage: pre
   image:
-    # https://hub.docker.com/_/alpine
-    name: alpine:latest
+    name: alpine:edge
   script:
     - *env_template
-    - apk add --no-cache bash gcc git musl-dev npm py3-pip python3-dev
-    - pip install pre-commit
-    # run pre-commit
+    - apk add --no-cache git npm pre-commit shellcheck
     - pre-commit --version
     - pre-commit run --all-files
 
