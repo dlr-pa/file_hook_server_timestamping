@@ -8,56 +8,62 @@ stages:
   - test
   - deploy
 
-.env_template: &env_template
+.display_env:
+  before_script:
     - date
+    - uname -a
     - cat /etc/os-release
 
-pre-commit_alpine:
+pre-commit:
   stage: pre
   image:
     name: alpine:edge
+  extends: .display_env
   script:
-    - *env_template
     - apk add --no-cache git npm pre-commit shellcheck
     - pre-commit --version
     - pre-commit run --all-files
 
-pycodestyle_alpine:
+pycodestyle:
   stage: pre
   image:
-    # https://hub.docker.com/_/alpine
     name: alpine:latest
+  extends: .display_env
   script:
-    - *env_template
     - apk add --no-cache py3-pycodestyle
-    # check PEP 8 code style (pycodestyle was formerly called pep8)
     - pycodestyle --version
-    - pycodestyle --show-source --show-pep8 --statistics $(find -name "*.py")
+    - pycodestyle --show-source --show-pep8 --statistics .
 
 pylint_alpine:
   stage: pre
   image:
-    # https://hub.docker.com/_/alpine
     name: alpine:latest
+  extends: .display_env
   script:
-    - *env_template
     - apk add --no-cache py3-pylint
-    # run pylint
     - pylint --version
     - pylint --persistent n $(find -name "*.py")
 
 pylint_debian:
   stage: pre
   image:
-    # https://hub.docker.com/_/debian
     name: debian:latest
+  extends: .display_env
   script:
-    - *env_template
     - apt-get update
     - $APT_GET_INSTALL pylint
-    # run pylint
     - pylint --version
     - pylint --persistent n $(find -name "*.py")
+
+ruff:
+  stage: pre
+  image:
+    name: alpine:edge
+  extends: .display_env
+  script:
+    - apk add --no-cache ruff
+    - ruff check --unsafe-fixes --diff || echo "!!! todo !!!"
+    - ruff check --output-format=full
 
 .test_template: &test_template
     - ./test/test1
@@ -72,8 +78,8 @@ pylint_debian:
 
 .debian_based_test_template: &debian_based_test_template
   stage: test
+  extends: .display_env
   script:
-    - *env_template
     - apt-get update
     - $APT_GET_INSTALL git gpg python3
     # run tests
@@ -81,85 +87,79 @@ pylint_debian:
 
 .almalinux_minimal_based_test_template: &almalinux_minimal_based_test_template
   stage: test
+  extends: .display_env
   script:
-    - *env_template
     - microdnf -y install git python3
     # run tests
     - *test_template
 
 test_ubuntu_20.04:
   image:
-    # https://hub.docker.com/_/ubuntu
     name: ubuntu:20.04
   <<: *debian_based_test_template
 
 test_ubuntu_22.04:
   image:
-    # https://hub.docker.com/_/ubuntu
     name: ubuntu:22.04
+  <<: *debian_based_test_template
+
+test_ubuntu_24.04:
+  image:
+    name: ubuntu:24.04
   <<: *debian_based_test_template
 
 test_ubuntu_latest:
   image:
-    # https://hub.docker.com/_/ubuntu
     name: ubuntu:latest
   <<: *debian_based_test_template
 
 test_debian_11:
   image:
-    # https://hub.docker.com/_/debian
     name: debian:11
   <<: *debian_based_test_template
 
 test_debian_12:
   image:
-    # https://hub.docker.com/_/debian
     name: debian:12
   <<: *debian_based_test_template
 
 test_debian_latest:
   image:
-    # https://hub.docker.com/_/debian
     name: debian:latest
   <<: *debian_based_test_template
 
 test_almalinux_latest:
   image:
-    # https://hub.docker.com/_/almalinux
     # almalinux needs support for x86-64-v2 (cpu flag sse4_2)
     name: almalinux:latest
   stage: test
+  extends: .display_env
   script:
-    - *env_template
     - yum -y install git
     # run tests
     - *test_template
 
 test_almalinux_8-minimal:
   image:
-    # https://hub.docker.com/_/almalinux
     name: almalinux:8-minimal
   <<: *almalinux_minimal_based_test_template
 
 test_almalinux_9-minimal:
   image:
-    # https://hub.docker.com/_/almalinux
     name: almalinux:9-minimal
   <<: *almalinux_minimal_based_test_template
 
 test_almalinux_minimal:
   image:
-    # https://hub.docker.com/_/almalinux
     name: almalinux:minimal
   <<: *almalinux_minimal_based_test_template
 
 test_opensuse_leap_latest:
   image:
-    # https://hub.docker.com/r/opensuse/leap
     name: opensuse/leap:latest
   stage: test
+  extends: .display_env
   script:
-    - *env_template
     - zypper --non-interactive install git python3
     # run tests
     - *test_template
