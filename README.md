@@ -93,22 +93,22 @@ The configuration file consists of two sections:
 
 * **`logging`:** This section is used to configure the logger.
   It includes the following options:
-    + **`name`:** The name of the logger.
-    + **`filename`:** The name of the log file. If this option is not set,
+      - `name`: The name of the logger.
+      - `filename`: The name of the log file. If this option is not set,
                     no file logging will be done.
-    + **`do_console_logging`:** Whether or not to log to the console/stdout.
-    + **`log_level`:** The logging level. Possible values are
-      "debug", "info", "warning", "error", and "critical".
+      - `do_console_logging`: Whether or not to log to the console/stdout.
+      - `log_level`: The logging level. Possible values are
+                     "debug", "info", "warning", "error", and "critical".
 * **`server_timestamping`:** This section is used to configure the server
   timestamping feature. It includes the following options:
-    + **`branch_name`:** The name of the branch in which the server
-      timestamping commits will be created.
-    + **`gpgkey`:** The name of the GPG key to use for signing commits.
-      If this option is not set, the script will create a new GPG key and
-      store the name in another configuration file,
-      `$HOME/.file_hook_server_timestamping_gpgkey.cfg`.
-      However, if a value is set for this option, it will overwrite the
-      configuration in the other file.
+      - `branch_name`: The name of the branch in which the server
+                       timestamping commits will be created.
+      - `gpgkey`: The name of the GPG key to use for signing commits.
+                  If this option is not set, the script will create a new
+                  GPG key and store the name in another configuration file,
+                  `$HOME/.file_hook_server_timestamping_gpgkey.cfg`.
+                  However, if a value is set for this option, it will
+                  overwrite the configuration in the other file.
 
 Hint: Sometimes `/var/opt/gitlab/` is owned by root.
 Workaround:
