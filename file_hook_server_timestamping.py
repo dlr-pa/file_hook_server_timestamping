@@ -91,6 +91,9 @@ def do_server_timestamping(log, config):
     """
     Author: Daniel Mohr
     Date: 2023-09-21
+
+    This function does the job of this script. It is called after
+    environment preparation.
     """
     project = analyse_stdin_input(log)
     check_gpg_key_available(log, config)
@@ -196,6 +199,12 @@ def call_server_timestamping():
     """
     Author: Daniel Mohr
     Date: 2023-09-21
+
+    This is the main function of this script.
+    It reads the config file and creates logging capabilities.
+
+    With this environment (config + log) it calls do_server_timestamping,
+    which does the real job.
     """
     config = configparser.ConfigParser()
     config['logging'] = {'name': 'server_timestamping',
