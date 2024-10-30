@@ -7,7 +7,7 @@ As default these commits are stored in the branch 'server_timestamping'.
 But you can define the branch in the configuration file.
 
 Author: Daniel Mohr
-Date: 2022-08-23, 2022-09-22, 2022-10-19, 2023-09-20, 2023-09-21
+Date: 2022-08-23, 2022-09-22, 2022-10-19, 2023-09-20, 2023-09-21, 2024-10-30
 License: BSD 3-Clause License
 """
 
@@ -32,27 +32,26 @@ DEFAULT_GPGKEY_FILE = os.path.join(
 def analyse_stdin_input(log):
     """
     Author: Daniel Mohr
-    Date: 2023-09-21
+    Date: 2023-09-21, 2024-10-30
 
     Read the input from stdin and parse it as json.
     """
     stdin_input = ''.join(sys.stdin)
     log.debug('stdin_input: %s', stdin_input)
     stdin_data = json.loads(stdin_input)
-    project = {}
-    if stdin_data['event_name'] == 'push':
-        project['id'] = stdin_data['project_id']
-        project['ref'] = stdin_data['ref']
-    else:
+    if stdin_data['event_name'] != 'push':
         # other event, not interesting for us
         sys.exit(0)
-    project['default_branch'] = stdin_data['project']['default_branch']
-    if project['ref'] != 'refs/heads/' + project['default_branch']:
+    if (stdin_data['ref'] !=
+            'refs/heads/' + stdin_data['project']['default_branch']):
         # nothing done on default branch
         sys.exit(0)
-    project['path_with_namespace'] = \
-        stdin_data['project']['path_with_namespace']
-    return project
+    return {
+        'id': stdin_data['project_id'],
+        'ref': stdin_data['ref'],
+        'default_branch': stdin_data['project']['default_branch'],
+        'path_with_namespace': stdin_data['project']['path_with_namespace']
+    }
 
 
 def check_gpg_key_available(log, config):
