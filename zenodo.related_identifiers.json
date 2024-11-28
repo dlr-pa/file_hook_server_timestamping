@@ -1,0 +1,30 @@
+{
+  "metadata": {
+    "related_identifiers": [
+      {
+        "relation": "References",
+        "identifier": "https://riaf-data.org/",
+        "scheme": "url",
+        "resource_type": "software"
+      },
+      {
+        "relation": "References",
+        "identifier": "https://doi.org/10.5281/zenodo.13987885",
+        "scheme": "doi",
+        "resource_type": "presentation"
+      },
+      {
+        "relation": "References",
+        "identifier": "https://doi.org/10.5281/zenodo.7189121",
+        "scheme": "doi",
+        "resource_type": "poster"
+      },
+      {
+        "relation": "References",
+        "identifier": "https://www.go-fair.org/fair-principles/",
+        "scheme": "url",
+        "resource_type": "other"
+      }
+    ]
+  }
+}

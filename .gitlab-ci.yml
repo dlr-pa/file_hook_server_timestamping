@@ -18,6 +18,9 @@ pre-commit:
   stage: pre
   image:
     name: alpine:edge
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   extends: .display_env
   script:
     - apk add --no-cache git npm pre-commit shellcheck
@@ -28,6 +31,9 @@ pycodestyle:
   stage: pre
   image:
     name: alpine:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   extends: .display_env
   script:
     - apk add --no-cache py3-pycodestyle
@@ -38,6 +44,9 @@ pylint_alpine:
   stage: pre
   image:
     name: alpine:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   extends: .display_env
   script:
     - apk add --no-cache py3-pylint
@@ -48,6 +57,9 @@ pylint_debian:
   stage: pre
   image:
     name: debian:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   extends: .display_env
   script:
     - apt-get update
@@ -59,6 +71,9 @@ ruff:
   stage: pre
   image:
     name: alpine:edge
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   extends: .display_env
   script:
     - apk add --no-cache ruff
@@ -78,6 +93,9 @@ ruff:
 
 .debian_based_test_template: &debian_based_test_template
   stage: test
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   extends: .display_env
   script:
     - apt-get update
@@ -87,6 +105,9 @@ ruff:
 
 .almalinux_minimal_based_test_template: &almalinux_minimal_based_test_template
   stage: test
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   extends: .display_env
   script:
     - microdnf -y install git python3
@@ -101,38 +122,59 @@ test_ubuntu_20.04:
 test_ubuntu_22.04:
   image:
     name: ubuntu:22.04
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   <<: *debian_based_test_template
 
 test_ubuntu_24.04:
   image:
     name: ubuntu:24.04
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   <<: *debian_based_test_template
 
 test_ubuntu_latest:
   image:
     name: ubuntu:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   <<: *debian_based_test_template
 
 test_debian_11:
   image:
     name: debian:11
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   <<: *debian_based_test_template
 
 test_debian_12:
   image:
     name: debian:12
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   <<: *debian_based_test_template
 
 test_debian_latest:
   image:
     name: debian:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   <<: *debian_based_test_template
 
 test_almalinux_latest:
+  stage: test
   image:
     # almalinux needs support for x86-64-v2 (cpu flag sse4_2)
     name: almalinux:latest
-  stage: test
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   extends: .display_env
   script:
     - yum -y install git
@@ -142,11 +184,17 @@ test_almalinux_latest:
 test_almalinux_8-minimal:
   image:
     name: almalinux:8-minimal
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   <<: *almalinux_minimal_based_test_template
 
 test_almalinux_9-minimal:
   image:
     name: almalinux:9-minimal
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   <<: *almalinux_minimal_based_test_template
 
 test_almalinux_minimal:
@@ -155,11 +203,25 @@ test_almalinux_minimal:
   <<: *almalinux_minimal_based_test_template
 
 test_opensuse_leap_latest:
+  stage: test
   image:
     name: opensuse/leap:latest
-  stage: test
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
   extends: .display_env
   script:
     - zypper --non-interactive install git python3
     # run tests
     - *test_template
+
+trigger_deploy2zenodo:
+  # https://gitlab.com/deploy2zenodo/deploy2zenodo#triggered-workflow
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_TAG
+  image:
+    name: alpine:latest
+  script:
+    - apk add --no-cache curl
+    - curl -X POST --fail -F token="${trigger_token:?}" -F ref=main "${trigger_url:?}" -F "variables[committag]=$CI_COMMIT_TAG" -F "variables[projectname]=$CI_PROJECT_NAME" -F "variables[foo]=baz"

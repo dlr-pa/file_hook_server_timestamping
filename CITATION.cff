@@ -1,0 +1,46 @@
+cff-version: 1.2.0
+title: file_hook_server_timestamping
+message: Please cite this software using these metadata.
+type: software
+authors:
+  - given-names: Daniel
+    family-names: Mohr
+    orcid: https://orcid.org/0000-0002-9382-6586
+    affiliation: Deutsches Zentrum für Luft- und Raumfahrt e. V.
+identifiers:
+  - description: The DOI of this release.
+    type: doi
+    value: 10.5281/zenodo.14234977
+repository-code: https://gitlab.com/projects/64912817
+url: https://gitlab.com/dlr-pa/file_hook_server_timestamping
+abstract: 'This script, `file_hook_server_timestamping.py`, enables the automatic
+creation of timestamped commits for a GitLab repository. Each time a push is
+made to the default branch, the script creates an empty commit with a
+timestamp that marks the time of the push event. This can be useful for a
+number of purposes, including auditing, tracking changes to the repository,
+and ensuring the integrity and authenticity of the data.
+
+Cryptographic timestamping on the server prevents silent changes to the
+history, whether by a user or otherwise. The cryptographic signature
+represents the time at which the data reaches the server, and subsequent
+changes to the history are not possible without the private GPG key stored
+on the server. This provides an additional layer of security to ensure the
+integrity and authenticity of the data.
+
+The script uses GPG keys to sign commits, which helps to ensure the
+authenticity and integrity of the timestamps. It can be easily customized
+through a configuration file and can be used on a single GitLab instance.
+
+In addition to being used in a standalone GitLab environment, this script
+could also be used inside the riaf environment based on GitLab, as mentioned
+in [doi.org/10.5281/zenodo.13987885](https://doi.org/10.5281/zenodo.13987885).'
+keywords:
+  - GitLab File Hook
+  - Timestamped Commits
+  - GPG Key Signing
+  - Data Integrity
+  - Python Script
+  - GitLab
+  - Server-side Functionality
+license: BSD-3-Clause
+doi: 10.5281/zenodo.14234977
