@@ -37,10 +37,13 @@ in [doi.org/10.5281/zenodo.13987885](https://doi.org/10.5281/zenodo.13987885).'
 keywords:
   - GitLab File Hook
   - Timestamped Commits
+  - timestamping
   - GPG Key Signing
   - Data Integrity
   - Python Script
   - GitLab
+  - python
+  - gpg
   - Server-side Functionality
 license: BSD-3-Clause
 doi: 10.5281/zenodo.14234977
